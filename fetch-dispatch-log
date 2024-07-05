@@ -30,8 +30,14 @@ def row_as_list_of_text(row):
     return [cell.text for cell in cells]
 
 
-def get_rows(driver, start, end):
+def get_rows(driver, current, timespan):
+    # 07/01/2013 05:01:34 PM
+    web_format = "%m/%d/%Y %I:%M %p"
+    start = current.strftime(web_format)
+    end = (current + timespan).strftime(web_format)
+
     epd_dispatch = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
+
     driver.get(epd_dispatch)
     driver.implicitly_wait(0.5)
     date_from_box = driver.find_element(By.ID, "DateFrom")
@@ -78,20 +84,16 @@ def write_file(rows, date):
 
 
 def main():
-    a_day_less_a_minute = timedelta(days=1) - timedelta(minutes=1)
     day_format = "%Y%m%d"
-    # 07/01/2013 05:01:34 PM
-    web_format = "%m/%d/%Y %I:%M %p"
+    a_day_less_a_minute = timedelta(days=1) - timedelta(minutes=1)
 
     driver = get_driver()
 
     # current = datetime(2013, 11, 18)
-    current = datetime(2014, 3, 7)
+    current = datetime(2018, 3, 7)
     last = datetime.now()
     while current <= last:
-        start = current.strftime(web_format)
-        end = (current + a_day_less_a_minute).strftime(web_format)
-        rows = get_rows(driver, start, end)
+        rows = get_rows(driver, current, a_day_less_a_minute)
         write_file(rows, current.strftime(day_format))
         current = current + timedelta(days=1)
 
