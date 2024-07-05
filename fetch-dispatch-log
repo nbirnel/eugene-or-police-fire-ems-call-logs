@@ -17,15 +17,18 @@ def get_driver():
     options.add_argument("--headless=new")
     return webdriver.Chrome(options=options)
 
+
 def write_warnings(date, message):
     full_message = f"{date}: {message}\n"
     print(full_message)
-    with open("warnings.txt", 'a', encoding='utf8') as warnings:
+    with open("warnings.txt", "a", encoding="utf8") as warnings:
         warnings.write(full_message)
+
 
 def row_as_list_of_text(row):
     cells = row.find_elements(By.XPATH, ".//td")[1:]
     return [cell.text for cell in cells]
+
 
 def get_rows(driver, start, end):
     epd_dispatch = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
@@ -50,7 +53,7 @@ def get_rows(driver, start, end):
         table = driver.find_element(By.XPATH, "//table[@id='calls']")
         body = table.find_element(By.XPATH, ".//tbody")
         rows = body.find_elements(By.XPATH, ".//tr")
-        return [ row_as_list_of_text(row) for row in rows ]
+        return [row_as_list_of_text(row) for row in rows]
     except TimeoutException:
         write_warnings(start, "timeout")
         return None
@@ -68,7 +71,7 @@ def write_file(rows, date):
         "priority",
         "case",
     ]
-    with open(output, "w", encoding='utf8') as csvfile:
+    with open(output, "w", encoding="utf8") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(header)
         writer.writerows(rows)
@@ -82,8 +85,8 @@ def main():
 
     driver = get_driver()
 
-    #current = datetime(2013, 11, 18)
-    current = datetime(2023, 11, 18)
+    # current = datetime(2013, 11, 18)
+    current = datetime(2014, 3, 7)
     last = datetime.now()
     while current <= last:
         start = current.strftime(web_format)
@@ -93,6 +96,7 @@ def main():
         current = current + timedelta(days=1)
 
     driver.quit()
+
 
 if __name__ == "__main__":
     main()
