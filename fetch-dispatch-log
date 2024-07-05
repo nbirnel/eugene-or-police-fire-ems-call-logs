@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import csv
-from time import sleep
 from datetime import datetime, timedelta
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 def get_driver():
@@ -16,8 +18,10 @@ def get_driver():
     return webdriver.Chrome(options=options)
 
 def write_warnings(date, message):
+    full_message = f"{date}: {message}\n"
+    print(full_message)
     with open("warnings.txt", 'a', encoding='utf8') as warnings:
-        warnings.write(f"{date}: {message}\n")
+        warnings.write(full_message)
 
 def row_as_list_of_text(row):
     cells = row.find_elements(By.XPATH, ".//td")[1:]
@@ -33,16 +37,23 @@ def get_rows(driver, start, end):
 
     date_from_box.send_keys(start)
     date_through_box.send_keys(end)
-    sleep(1)
     submit_button.click()
-    sleep(10)
 
-    main_ = driver.find_element(By.ID, "main")
-    if "Number of search results was reduced to 250" in main_.text:
-        write_warnings(start, "results truncated to 250")
-    table = driver.find_element(By.XPATH, "//table[@id='calls']")
-    rows = table.find_elements(By.XPATH, ".//tr")
-    return [ row_as_list_of_text(row) for row in rows ]
+    delay = 10
+    try:
+        wrapper = WebDriverWait(driver, delay).until(
+            EC.presence_of_element_located((By.XPATH, "//table[@id='calls']"))
+        )
+        main_ = driver.find_element(By.ID, "main")
+        if "Number of search results was reduced to 250" in main_.text:
+            write_warnings(start, "results truncated to 250")
+        table = driver.find_element(By.XPATH, "//table[@id='calls']")
+        body = table.find_element(By.XPATH, ".//tbody")
+        rows = body.find_elements(By.XPATH, ".//tr")
+        return [ row_as_list_of_text(row) for row in rows ]
+    except TimeoutException:
+        write_warnings(start, "timeout")
+        return None
 
 
 def write_file(rows, date):
@@ -71,7 +82,8 @@ def main():
 
     driver = get_driver()
 
-    current = datetime(2013, 11, 19)
+    #current = datetime(2013, 11, 18)
+    current = datetime(2023, 11, 18)
     last = datetime.now()
     while current <= last:
         start = current.strftime(web_format)
@@ -79,7 +91,6 @@ def main():
         rows = get_rows(driver, start, end)
         write_file(rows, current.strftime(day_format))
         current = current + timedelta(days=1)
-        sleep(3)
 
     driver.quit()
 
