@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+from datetime import datetime, timedelta
+
+from coeapps import (
+    get_driver,
+    write_warnings,
+    row_as_list_of_text,
+    write_file,
+    By,
+    EC,
+    TimeoutException,
+    WebDriverWait,
+    locate_with,
+)
+
+
+def get_rows(driver, current):
+    
+    dispatch = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
+    driver.get(dispatch)
+
+    # 07/01/2013 05:01:34 PM
+    web_format = "%m/%d/%Y"
+    format_time = current.strftime(web_format)
+    iso_format = current.strftime("%Y%m%d")
+
+    driver.implicitly_wait(0.5)
+    date_from_box = driver.find_element(By.ID, "DateFrom")
+    date_through_box = driver.find_element(By.ID, "DateThrough")
+    submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
+
+    date_from_box.send_keys(format_time)
+    date_through_box.send_keys(format_time)
+    submit_button.click()
+
+    delay = 10
+    try:
+        wrapper = WebDriverWait(driver, delay).until(
+            EC.presence_of_element_located((By.XPATH, "//table[@id='calls']"))
+        )
+        main_ = driver.find_element(By.ID, "main")
+
+
+
+        if "Number of search results was reduced to 250" in main_.text:
+            write_warnings(iso_format, "results truncated to 250")
+        table = driver.find_element(By.XPATH, "//table[@id='calls']")
+        body = table.find_element(By.XPATH, ".//tbody")
+        rows = body.find_elements(By.XPATH, ".//tr")
+
+        summary = main_.find_elements(By.XPATH, "//div")[-3].text
+        number_of_calls = int(summary.split(":")[1].strip())
+        if number_of_calls != len(rows):
+            write_warnings(isoformat, f"expected {number_of_calls}, got {len(rows)}")
+        return [row_as_list_of_text(row, 1) for row in rows]
+    except TimeoutException:
+        write_warnings(start, "timeout")
+        return None
+
+
+def main():
+    day_format = "%Y%m%d"
+    header = (
+        "call_time",
+        "dispatch_time",
+        "incident_desc",
+        "disposition",
+        "event_number",
+        "location",
+        "priority",
+        "case",
+    )
+
+    driver = get_driver()
+    current = datetime(2013, 11, 18)
+    last = datetime.now()
+
+    while current <= last:
+        rows = get_rows(driver, current)
+        write_file(rows, current.strftime(day_format), "epd", header)
+        current = current + timedelta(days=1)
+
+    driver.quit()
+
+
+if __name__ == "__main__":
+    main()

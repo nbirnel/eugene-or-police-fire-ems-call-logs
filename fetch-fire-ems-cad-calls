@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+
+import csv
+from datetime import datetime, timedelta
+
+from coeapps import (
+    get_driver,
+    write_warnings,
+    row_as_list_of_text,
+    write_file,
+    By,
+    EC,
+    TimeoutException,
+    WebDriverWait,
+)
+
+
+def get_rows(driver, current):
+
+    year = current.strftime("%Y")  # 2018
+    month = current.strftime("%b")  # Jan Feb Mar
+    day = current.strftime("%-d")  # 1 2 3
+
+    driver.implicitly_wait(0.5)
+
+    calendar = driver.find_element(By.ID, "calendar")
+
+    # Year options are generated dynamically in a 21 year range, so
+    # we may need to click around to make our year visible.
+    while True:
+        year_element = calendar.find_element(
+            By.CLASS_NAME, "ui-datepicker-year"
+        )
+        year_select = Select(year_element)
+        years = [option.text for option in year_select.options]
+
+        if year in years:
+            year_select.select_by_visible_text(year)
+            break
+        if year < years[0]:
+            year_select.select_by_visible_text(years[0])
+        if year > years[-1]:
+            year_select.select_by_visible_text(years[-1])
+
+    month_element = calendar.find_element(
+        By.CLASS_NAME, "ui-datepicker-month"
+    )
+    month_select = Select(month_element)
+    month_select.select_by_visible_text(month)
+
+    day_table = calendar.find_element(By.CLASS_NAME, "ui-datepicker-calendar")
+    day_body = day_table.find_element(By.XPATH, "//tbody")
+    days = day_body.find_elements(By.XPATH, "//a[@href='#']")
+    day_to_click = next(filter(lambda x: x.text == day, days))
+    day_to_click.click()
+
+    delay = 10
+    try:
+        wrapper = WebDriverWait(driver, delay).until(
+            EC.presence_of_element_located((By.XPATH, "//table[@id='calls']"))
+        )
+        summary = driver.find_element(
+            By.XPATH, "//tr[@id='callSummary']/td/h4"
+        ).text
+        number_of_calls = int(summary.split(":")[1].strip())
+
+        table = driver.find_element(By.XPATH, "//table[@id='calls']")
+        body = table.find_element(By.XPATH, ".//tbody")
+        rows = body.find_elements(By.XPATH, ".//tr")
+        if number_of_calls != len(rows):
+            write_warnings(
+                start, f"should be {number_of_calls}, but is {len(rows)}"
+            )
+        return [row_as_list_of_text(row) for row in rows]
+    except TimeoutException:
+        write_warnings(start, "timeout")
+        return None
+
+
+def write_file(rows, date):
+    output = f"fire-ems-{date}.csv"
+    with open(output, "w", encoding="utf8") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(header)
+        writer.writerows(rows)
+
+
+def main():
+    dispatch = "https://coeapps.eugene-or.gov/ruralfirecad"
+    day_format = "%Y%m%d"
+    header = (
+        "event_number",
+        "agency",
+        "dispatch_time",
+        "area",
+        "location",
+        "city",
+        "description",
+    )
+
+    driver = get_driver()
+    driver.get(dispatch)
+
+    current = datetime(2013, 11, 19)
+    last = datetime.now()
+
+    while current <= last:
+        rows = get_rows(driver, current)
+        write_file(rows, current.strftime(day_format), "fire-ems", header)
+        current = current + timedelta(days=1)
+
+    driver.quit()
+
+
+if __name__ == "__main__":
+    main()
