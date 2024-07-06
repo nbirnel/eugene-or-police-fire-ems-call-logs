@@ -23,7 +23,7 @@ def get_rows(driver, current):
     month = current.strftime("%b")  # Jan Feb Mar
     day = current.strftime("%-d")  # 1 2 3
     iso_format = current.strftime("%Y%m%d")
-
+    logging.info("starting %s", iso_format)
     driver.implicitly_wait(0.5)
 
     calendar = driver.find_element(By.ID, "calendar")

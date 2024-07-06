@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime, timedelta
+from itertools import chain
 
 from coeapps import (
     get_driver,
@@ -11,14 +12,23 @@ from coeapps import (
     write_file,
     By,
     EC,
+    Select,
     TimeoutException,
     WebDriverWait,
 )
 
+DISPATCH = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
 
-def get_rows(driver, current):
-    dispatch = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
-    driver.get(dispatch)
+def get_incident_types(driver):
+    driver.get(DISPATCH)
+    driver.implicitly_wait(1)
+    type_element = driver.find_element(By.ID, "IncidentType")
+    type_select = Select(type_element)
+    # Cast to list, since otherwise these elements will be stale be the time they are used.
+    return list(filter(None, (option.text for option in type_select.options)))
+
+def get_rows(driver, current, incident_type=None):
+    driver.get(DISPATCH)
 
     # 07/01/2013 05:01:34 PM
     web_format = "%m/%d/%Y"
@@ -29,6 +39,13 @@ def get_rows(driver, current):
     date_from_box = driver.find_element(By.ID, "DateFrom")
     date_through_box = driver.find_element(By.ID, "DateThrough")
     submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
+    if incident_type:
+        type_element = driver.find_element(By.ID, "IncidentType")
+        type_select = Select(type_element)
+        type_select.select_by_visible_text(incident_type)
+        logging.info("starting %s incident type %s", iso_format, incident_type)
+    else:
+        logging.info("starting %s", iso_format)
 
     date_from_box.send_keys(format_time)
     date_through_box.send_keys(format_time)
@@ -42,7 +59,10 @@ def get_rows(driver, current):
         main_ = driver.find_element(By.ID, "main")
 
         if "Number of search results was reduced to 250" in main_.text:
-            logging.warning("%s results truncated to 250", iso_format)
+            logging.warning("%s results truncated to 250. Trying again per incident type", iso_format)
+            incident_types = get_incident_types(driver)
+            return chain.from_iterable([get_rows(driver, current, i_type) for i_type in incident_types])
+
         table = driver.find_element(By.XPATH, "//table[@id='calls']")
         body = table.find_element(By.XPATH, ".//tbody")
         rows = body.find_elements(By.XPATH, ".//tr")
