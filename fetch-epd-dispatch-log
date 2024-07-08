@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from itertools import chain
 
 from coeapps import (
+    get_current_last,
     get_driver,
     configure_logging,
     logging,
@@ -93,18 +94,8 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
+    current, last = get_current_last(args)
 
-    start_y, start_m, start_d = (
-        int(element) for element in args.start.split("-")
-    )
-    current = datetime(start_y, start_m, start_d)
-    if args.end:
-        end_y, end_m, end_d = (
-            int(element) for element in args.end.split("-")
-        )
-        last = datetime(end_y, end_m, end_d)
-    else:
-        last = datetime.now()
 
     configure_logging("fetch-epd-log.log", args.log_level)
     logging.info("started with %s", args)
@@ -128,7 +119,7 @@ def main():
             rows = get_rows(driver, current, no_recurse=args.no_recurse)
             write_file(rows, current.strftime(day_format), "epd", header)
         except Exception as error:
-            log.error("%s failed to get rows: %s", current error)
+            logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)
 
     driver.quit()

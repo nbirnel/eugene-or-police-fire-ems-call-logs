@@ -15,6 +15,26 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 
+def get_current_last(args):
+    if args.date:
+        start = end = args.date
+    else:
+        start = args.start
+        end = args.end
+
+    start_y, start_m, start_d = (
+        int(element) for element in start.split("-")
+    )
+    current = datetime(start_y, start_m, start_d)
+    if end:
+        end_y, end_m, end_d = (
+            int(element) for element in end.split("-")
+        )
+        last = datetime(end_y, end_m, end_d)
+    else:
+        last = datetime.now()
+    return current, last
+
 def configure_logging(filename, level="WARN"):
     """
     Accept filename (file-like object),
@@ -54,6 +74,12 @@ def new_parser(**kwargs) -> argparse.ArgumentParser:
         """,
         default="INFO",
     )
+    parser.add_argument(
+        "-d",
+        "--date",
+        help="A single date to fetch. Syntactic sugar for -s DATE -e DATE."
+    )
+
 
     return parser
 
