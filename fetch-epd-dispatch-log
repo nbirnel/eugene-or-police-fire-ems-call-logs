@@ -124,8 +124,11 @@ def main():
     driver = get_driver()
 
     while current <= last:
-        rows = get_rows(driver, current, no_recurse=args.no_recurse)
-        write_file(rows, current.strftime(day_format), "epd", header)
+        try:
+            rows = get_rows(driver, current, no_recurse=args.no_recurse)
+            write_file(rows, current.strftime(day_format), "epd", header)
+        except Exception as error:
+            log.error("%s failed to get rows: %s", current error)
         current = current + timedelta(days=1)
 
     driver.quit()
