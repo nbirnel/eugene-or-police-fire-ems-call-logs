@@ -2,7 +2,7 @@
 
 import argparse
 import csv
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 
 from selenium import webdriver
@@ -15,6 +15,9 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 
+DAY_FORMAT = "%Y%m%d"
+
+
 def get_current_last(args):
     if args.date:
         start = end = args.date
@@ -22,18 +25,15 @@ def get_current_last(args):
         start = args.start
         end = args.end
 
-    start_y, start_m, start_d = (
-        int(element) for element in start.split("-")
-    )
+    start_y, start_m, start_d = (int(element) for element in start.split("-"))
     current = datetime(start_y, start_m, start_d)
     if end:
-        end_y, end_m, end_d = (
-            int(element) for element in end.split("-")
-        )
+        end_y, end_m, end_d = (int(element) for element in end.split("-"))
         last = datetime(end_y, end_m, end_d)
     else:
         last = datetime.now()
     return current, last
+
 
 def configure_logging(filename, level="WARN"):
     """
@@ -51,7 +51,7 @@ def configure_logging(filename, level="WARN"):
     )
 
 
-def new_parser(**kwargs) -> argparse.ArgumentParser:
+def new_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-s",
@@ -77,9 +77,8 @@ def new_parser(**kwargs) -> argparse.ArgumentParser:
     parser.add_argument(
         "-d",
         "--date",
-        help="A single date to fetch. Syntactic sugar for -s DATE -e DATE."
+        help="A single date to fetch. Syntactic sugar for -s DATE -e DATE.",
     )
-
 
     return parser
 

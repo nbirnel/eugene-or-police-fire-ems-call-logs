@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from itertools import chain
 
 from coeapps import (
@@ -11,6 +11,7 @@ from coeapps import (
     new_parser,
     row_as_list_of_text,
     write_file,
+    DAY_FORMAT,
     By,
     EC,
     Select,
@@ -20,6 +21,7 @@ from coeapps import (
 
 DISPATCH = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
 
+
 def get_incident_types(driver):
     driver.get(DISPATCH)
     driver.implicitly_wait(1)
@@ -27,6 +29,7 @@ def get_incident_types(driver):
     type_select = Select(type_element)
     # Cast to list, since otherwise these elements will be stale be the time they are used.
     return list(filter(None, (option.text for option in type_select.options)))
+
 
 def get_rows(driver, current, no_recurse=False, incident_type=None):
     driver.get(DISPATCH)
@@ -44,7 +47,9 @@ def get_rows(driver, current, no_recurse=False, incident_type=None):
         type_element = driver.find_element(By.ID, "IncidentType")
         type_select = Select(type_element)
         type_select.select_by_visible_text(incident_type)
-        logging.info("starting %s incident type %s", iso_format, incident_type)
+        logging.info(
+            "starting %s incident type %s", iso_format, incident_type
+        )
     else:
         logging.info("starting %s", iso_format)
 
@@ -61,11 +66,22 @@ def get_rows(driver, current, no_recurse=False, incident_type=None):
 
         if "Number of search results was reduced to 250" in main_.text:
             if no_recurse:
-                logging.warning("%s results truncated to 250. Not trying again due to no_recurse", iso_format)
+                logging.warning(
+                    "%s results truncated to 250. Not trying again due to no_recurse",
+                    iso_format,
+                )
             else:
-                logging.warning("%s results truncated to 250. Trying again per incident type", iso_format)
+                logging.warning(
+                    "%s results truncated to 250. Trying again per incident type",
+                    iso_format,
+                )
                 incident_types = get_incident_types(driver)
-                return chain.from_iterable([get_rows(driver, current, incident_type=i_type) for i_type in incident_types])
+                return chain.from_iterable(
+                    [
+                        get_rows(driver, current, incident_type=i_type)
+                        for i_type in incident_types
+                    ]
+                )
 
         table = driver.find_element(By.XPATH, "//table[@id='calls']")
         body = table.find_element(By.XPATH, ".//tbody")
@@ -96,11 +112,9 @@ def main():
     args = parser.parse_args()
     current, last = get_current_last(args)
 
-
     configure_logging("fetch-epd-log.log", args.log_level)
     logging.info("started with %s", args)
 
-    day_format = "%Y%m%d"
     header = (
         "call_time",
         "dispatch_time",
@@ -117,7 +131,7 @@ def main():
     while current <= last:
         try:
             rows = get_rows(driver, current, no_recurse=args.no_recurse)
-            write_file(rows, current.strftime(day_format), "epd", header)
+            write_file(rows, current.strftime(DAY_FORMAT), "epd", header)
         except Exception as error:
             logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)

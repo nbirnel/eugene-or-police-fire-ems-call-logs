@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from coeapps import (
     get_driver,
@@ -9,6 +9,7 @@ from coeapps import (
     new_parser,
     row_as_list_of_text,
     write_file,
+    DAY_FORMAT,
     By,
     EC,
     Select,
@@ -37,13 +38,13 @@ def get_rows(driver, current):
         year_select = Select(year_element)
         years = [option.text for option in year_select.options]
 
-        if year in years:
-            year_select.select_by_visible_text(year)
-            break
         if year < years[0]:
             year_select.select_by_visible_text(years[0])
         if year > years[-1]:
             year_select.select_by_visible_text(years[-1])
+        if year in years:
+            year_select.select_by_visible_text(year)
+            break
 
     month_element = calendar.find_element(
         By.CLASS_NAME, "ui-datepicker-month"
@@ -93,7 +94,6 @@ def main():
     logging.info("started with %s", args)
 
     dispatch = "https://coeapps.eugene-or.gov/ruralfirecad"
-    day_format = "%Y%m%d"
     header = (
         "event_number",
         "agency",
@@ -108,8 +108,11 @@ def main():
     driver.get(dispatch)
 
     while current <= last:
-        rows = get_rows(driver, current)
-        write_file(rows, current.strftime(day_format), "fire-ems", header)
+        try:
+            rows = get_rows(driver, current)
+            write_file(rows, current.strftime(DAY_FORMAT), "fire-ems", header)
+        except Exception as error:
+            logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)
 
     driver.quit()
