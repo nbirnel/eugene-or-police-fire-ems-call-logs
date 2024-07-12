@@ -65,10 +65,11 @@ def get_rows(driver, current):
 
 
 def main():
+    file_prefix = "fire-ems"
     parser = new_parser()
     args = parser.parse_args()
+    dry_run = args.dry_run
     current, last = get_current_last(args)
-
     configure_logging("fetch-fire-ems-log.log", args.log_level)
     logging.info("started with %s", args)
 
@@ -83,18 +84,24 @@ def main():
         "description",
     )
 
-    driver = get_driver()
-    driver.get(dispatch)
+    if not dry_run:
+        driver = get_driver()
+        driver.get(dispatch)
 
     while current <= last:
-        try:
-            rows = get_rows(driver, current)
-            write_file(rows, current.strftime(DAY_FORMAT), "fire-ems", header)
-        except Exception as error:
-            logging.error("%s failed to get rows: %s", current, error)
+        filename = file_name(file_prefix, current.strftime(DAY_FORMAT))
+        if dry_run:
+            print(filename)
+        else:
+            try:
+                rows = get_rows(driver, current)
+                write_file(filename, rows, header)
+            except Exception as error:
+                logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)
 
-    driver.quit()
+    if not dry_run:
+        driver.quit()
 
 
 if __name__ == "__main__":

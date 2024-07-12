@@ -101,6 +101,12 @@ def new_parser() -> argparse.ArgumentParser:
         "--date",
         help="A single date to fetch. Syntactic sugar for -s DATE -e DATE.",
     )
+    parser.add_argument(
+        "-D",
+        "--dry-run",
+        help="Do not fetch results, but merely print filenames which would be saved to",
+        action="store_true",
+    )
 
     return parser
 
@@ -120,8 +126,10 @@ def row_as_list_of_text(row, skip_first_n=False):
     return [cell.text for cell in cells]
 
 
-def write_file(rows, date, prefix, header):
-    output = f"{prefix}-{date}.csv"
+def file_name(prefix, date):
+    return f"{prefix}-{date}.csv"
+
+def write_file(output, rows, header):
     with open(output, "w", encoding="utf8") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(header)
