@@ -2,27 +2,12 @@
 
 from datetime import timedelta
 
-from coeapps import (
-    get_driver,
-    configure_logging,
-    logging,
-    new_parser,
-    row_as_list_of_text,
-    write_file,
-    DAY_FORMAT,
-    By,
-    EC,
-    Select,
-    TimeoutException,
-    WebDriverWait,
-)
-
+from coeapps import *
 
 def get_rows(driver, current):
+    fmt = current.strftime
+    year, month, day = ftm("%Y"), fmt("%b"), fmt("%-d")
 
-    year = current.strftime("%Y")  # 2018
-    month = current.strftime("%b")  # Jan Feb Mar
-    day = current.strftime("%-d")  # 1 2 3
     iso_format = current.strftime("%Y%m%d")
     logging.info("starting %s", iso_format)
     driver.implicitly_wait(0.5)
@@ -71,14 +56,8 @@ def get_rows(driver, current):
         summary = driver.find_element(
             By.XPATH, "//tr[@id='callSummary']/td/h4"
         ).text
-        number_of_calls = int(summary.split(":")[1].strip())
-        if number_of_calls != len(rows):
-            logging.error(
-                "%s expected %d calls, got %d",
-                iso_format,
-                number_of_calls,
-                len(rows),
-            )
+        validate_results(summary, len(rows), iso_format)
+
         return [row_as_list_of_text(row) for row in rows]
     except TimeoutException:
         logging.error("%s timeout", iso_format)

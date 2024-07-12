@@ -34,6 +34,23 @@ def get_current_last(args):
     return current, last
 
 
+def validate_results(summary: str, calls_fetched, log_prefix: str, incident_type=None):
+    calls_expected = int(summary.split(":")[1].strip())
+    if incident_type:
+        log_prefix += ' ' + incident_type
+
+    if calls_expected != calls_fetched:
+        logging.error(
+            "%s expected %d calls, got %d",
+            log_prefix,
+            number_of_calls,
+            calls_fetched,
+        )
+    else:
+        logging.info('%s got %d calls', log_prefix, calls_fetched)
+
+
+
 def configure_logging(filename, level="WARN"):
     """
     Accept filename (file-like object),
@@ -55,13 +72,19 @@ def new_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-s",
         "--start",
-        help="Start date, in YYYY-M-D format. Default 2013-11-19.",
+        help="""
+            Start date, in any reasonable format, as understood by dateutil.
+            Default 2013-11-19.
+            """,
         default="2013-11-19",
     )
     parser.add_argument(
         "-e",
         "--end",
-        help="End date, in YYYY-M-D format. Default today.",
+        help="""
+            End date, in any reasonable format, as understood by dateutil.
+            Default today.
+            """,
         default=None,
     )
     parser.add_argument(
