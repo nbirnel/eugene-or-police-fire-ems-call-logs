@@ -5,6 +5,7 @@ import csv
 from datetime import datetime
 import logging
 
+from dateutil.parser import parse as parse_date
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
@@ -25,11 +26,9 @@ def get_current_last(args):
         start = args.start
         end = args.end
 
-    start_y, start_m, start_d = (int(element) for element in start.split("-"))
-    current = datetime(start_y, start_m, start_d)
+    current = parse_date(start)
     if end:
-        end_y, end_m, end_d = (int(element) for element in end.split("-"))
-        last = datetime(end_y, end_m, end_d)
+        last = parse_date(end)
     else:
         last = datetime.now()
     return current, last
@@ -56,8 +55,8 @@ def new_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-s",
         "--start",
-        help="Start date, in YYYY-M-D format. Default 2013-11-18.",
-        default="2013-11-18",
+        help="Start date, in YYYY-M-D format. Default 2013-11-19.",
+        default="2013-11-19",
     )
     parser.add_argument(
         "-e",
