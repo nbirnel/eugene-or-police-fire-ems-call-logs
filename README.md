@@ -13,7 +13,7 @@ The EPD page also limits requests to 250 calls per page.
 This project automates scraping these two pages.
 Output is to CSV files, one per day of records.
 
-You can download the zipped CSV files from the releases page.
+You can download the zipped CSV files from the [releases](https://github.com/nbirnel/eugene-or-police-fire-ems-call-logs/releases) page.
 
 ## Setup
 
