@@ -1,5 +1,6 @@
 *.csv
-warnings.txt
 *.log
+*.zip
+*.pyc
 venv/
 __pycache__/

@@ -88,6 +88,11 @@ def new_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
+        "-d",
+        "--date",
+        help="A single date to fetch. Syntactic sugar for -s DATE -e DATE.",
+    )
+    parser.add_argument(
         "-l",
         "--log-level",
         choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -95,11 +100,6 @@ def new_parser() -> argparse.ArgumentParser:
         default: INFO.
         """,
         default="INFO",
-    )
-    parser.add_argument(
-        "-d",
-        "--date",
-        help="A single date to fetch. Syntactic sugar for -s DATE -e DATE.",
     )
     parser.add_argument(
         "-D",
