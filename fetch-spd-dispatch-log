@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+
+from datetime import timedelta
+from itertools import chain
+
+from coeapps import *
+
+DISPATCH = "https://coeapps.eugene-or.gov/SPDDispatchLog/Search"
+
+
+def get_incident_types(driver):
+    driver.get(DISPATCH)
+    driver.implicitly_wait(1)
+    type_element = driver.find_element(By.ID, "IncidentType")
+    type_select = Select(type_element)
+    # Cast to list, since otherwise these elements will be stale be the time they are used.
+    return list(filter(None, (option.text for option in type_select.options)))
+
+
+def get_rows(driver, current, no_recurse=False, incident_type=None):
+    driver.get(DISPATCH)
+
+    # 07/01/2013 05:01:34 PM
+    web_format = "%m/%d/%Y"
+    format_time = current.strftime(web_format)
+    iso_format = current.strftime("%Y%m%d")
+
+    driver.implicitly_wait(1)
+    date_from_box = driver.find_element(By.ID, "DateFrom")
+    date_through_box = driver.find_element(By.ID, "DateThrough")
+    submit_button = driver.find_element(By.XPATH, "//input[@type='submit']")
+    if incident_type:
+        type_element = driver.find_element(By.ID, "IncidentType")
+        type_select = Select(type_element)
+        type_select.select_by_visible_text(incident_type)
+        logging.info(
+            "starting %s incident type %s", iso_format, incident_type
+        )
+    else:
+        logging.info("starting %s", iso_format)
+
+    date_from_box.send_keys(format_time)
+    date_through_box.send_keys(format_time)
+    submit_button.click()
+
+    delay = 10
+    try:
+        wrapper = WebDriverWait(driver, delay).until(
+            EC.presence_of_element_located((By.XPATH, "//table[@id='calls']"))
+        )
+        main_ = driver.find_element(By.ID, "main")
+
+        if "Number of search results was reduced to 250" in main_.text:
+            if no_recurse:
+                logging.warning(
+                    "%s results truncated to 250. Not trying again due to no_recurse",
+                    iso_format,
+                )
+            else:
+                logging.warning(
+                    "%s results truncated to 250. Trying again per incident type",
+                    iso_format,
+                )
+                incident_types = get_incident_types(driver)
+                return chain.from_iterable(
+                    [
+                        get_rows(driver, current, incident_type=i_type)
+                        for i_type in incident_types
+                    ]
+                )
+
+        table = driver.find_element(By.XPATH, "//table[@id='calls']")
+        body = table.find_element(By.XPATH, ".//tbody")
+        rows = body.find_elements(By.XPATH, ".//tr")
+
+        summary = main_.find_elements(By.XPATH, "//div")[-3].text
+        validate_results(summary, len(rows), iso_format, incident_type)
+        return [row_as_list_of_text(row, 1) for row in rows]
+    except TimeoutException:
+        logging.error("%s timeout", iso_format)
+        return None
+
+
+def main():
+    file_prefix = "spd"
+    parser = new_parser(start='2009-12-13')
+    parser.add_argument(
+        "--no-recurse",
+        help="Do not recurse on result-limited pages.",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    dry_run = args.dry_run
+    current, last = get_current_last(args)
+
+    configure_logging("fetch-spd-log.log", args.log_level)
+    logging.info("started with %s", args)
+
+    header = (
+        "call_time",
+        "dispatch_time",
+        "incident_desc",
+        "officers",
+        "disposition",
+        "event_number",
+        "location",
+        "priority",
+        "case",
+    )
+
+    if not dry_run:
+        driver = get_driver()
+
+    while current <= last:
+        filename = file_name(file_prefix, current.strftime(DAY_FORMAT))
+        if dry_run:
+            print(filename)
+        else:
+            try:
+                rows = get_rows(driver, current, no_recurse=args.no_recurse)
+                write_file(filename, rows, header)
+            except Exception as error:
+                logging.error("%s failed to get rows: %s", current, error)
+        current = current + timedelta(days=1)
+
+    if not dry_run:
+        driver.quit()
+
+
+
+if __name__ == "__main__":
+    main()

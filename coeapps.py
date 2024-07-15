@@ -67,16 +67,16 @@ def configure_logging(filename, level="WARN"):
     )
 
 
-def new_parser() -> argparse.ArgumentParser:
+def new_parser(start='2013-11-19') -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-s",
         "--start",
-        help="""
+        help=f"""
             Start date, in any reasonable format, as understood by dateutil.
-            Default 2013-11-19.
+            Default {start}.
             """,
-        default="2013-11-19",
+        default=start,
     )
     parser.add_argument(
         "-e",
