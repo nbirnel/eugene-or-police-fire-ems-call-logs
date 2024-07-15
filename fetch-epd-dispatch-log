@@ -117,7 +117,7 @@ def main():
         else:
             try:
                 rows = get_rows(driver, current, no_recurse=args.no_recurse)
-                write_file(filename, rows)
+                write_file(filename, rows, header)
             except Exception as error:
                 logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)
