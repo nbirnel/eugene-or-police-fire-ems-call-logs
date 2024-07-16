@@ -18,7 +18,9 @@ This project automates scraping these two pages.
 Output is to CSV files, one per day of records,
 stored in directories by year and month.
 
-You can download the zipped CSV files from the [releases](https://github.com/nbirnel/eugene-or-police-fire-ems-call-logs/releases) page.
+You can download the zipped CSV files from the 
+[releases](https://github.com/nbirnel/eugene-or-police-fire-ems-call-logs/releases)
+page.
 
 ## Setup
 
@@ -44,7 +46,10 @@ Python package requirements are minimal:
     pip install -r requirements.txt
 ```
 
-## Running
+## Usage
+
+The usage is nearly identical between the three tools. 
+Only the default start date and the `--no-recurse` options differ.
 
 ### EPD
 
@@ -67,6 +72,29 @@ Python package requirements are minimal:
       -D, --dry-run         Do not fetch results, but merely print filenames which
                             would be saved to
       --no-recurse          Do not recurse on result-limited pages.
+```
+
+### SPD
+
+```
+usage: fetch-spd-dispatch-log [-h] [-s START] [-e END] [-d DATE]
+                              [-l {NOTSET,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                              [-D] [--no-recurse]
+
+options:
+  -h, --help            show this help message and exit
+  -s START, --start START
+                        Start date, in any reasonable format, as understood by
+                        dateutil. Default 2009-12-13.
+  -e END, --end END     End date, in any reasonable format, as understood by
+                        dateutil. Default today.
+  -d DATE, --date DATE  A single date to fetch. Syntactic sugar for -s DATE -e
+                        DATE.
+  -l {NOTSET,DEBUG,INFO,WARNING,ERROR,CRITICAL}, --log-level {NOTSET,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Log at level LOG_LEVEL. default: INFO.
+  -D, --dry-run         Do not fetch results, but merely print filenames which
+                        would be saved to
+  --no-recurse          Do not recurse on result-limited pages.
 ```
 
 ### Fire and EMS
