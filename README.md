@@ -14,7 +14,7 @@ Sadly, there is no public API for these services,
 and the ability to customize a search is quite limited. 
 The EPD page also limits requests to 250 calls per page.
 
-This project automates scraping these two pages.
+This project automates scraping these three pages.
 Output is to CSV files, one per day of records,
 stored in directories by year and month.
 
