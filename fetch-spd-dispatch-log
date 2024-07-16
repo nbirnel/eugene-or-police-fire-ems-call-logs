@@ -112,13 +112,13 @@ def main():
         driver = get_driver()
 
     while current <= last:
-        filename = file_name(file_prefix, current.strftime(DAY_FORMAT))
+        path, filename = get_path_and_file(file_prefix, current)
         if dry_run:
             print(filename)
         else:
             try:
                 rows = get_rows(driver, current, no_recurse=args.no_recurse)
-                write_file(filename, rows, header)
+                write_file(path, filename, rows, header)
             except Exception as error:
                 logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)

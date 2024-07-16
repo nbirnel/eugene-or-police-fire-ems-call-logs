@@ -6,12 +6,17 @@ Similarly, its Fire & EMS CAD calls are available at
 https://coeapps.eugene-or.gov/ruralfirecad.
 Data goes back to November 19, 2013.
 
+Springfield, Oregon uses the same reporting system at 
+https://coeapps.eugene-or.gov/SPDDispatchLog/Search.
+Its data goes back to December 13, 2009.
+
 Sadly, there is no public API for these services,
 and the ability to customize a search is quite limited. 
 The EPD page also limits requests to 250 calls per page.
 
 This project automates scraping these two pages.
-Output is to CSV files, one per day of records.
+Output is to CSV files, one per day of records,
+stored in directories by year and month.
 
 You can download the zipped CSV files from the releases page.
 

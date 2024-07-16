@@ -1,4 +1,4 @@
-DIRS := epd fire-ems
+DIRS := epd fire-ems spd
 ZIPS := $(addsuffix .zip,$(DIRS))
 
 

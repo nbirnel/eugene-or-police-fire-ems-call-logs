@@ -6,7 +6,7 @@ from coeapps import *
 
 def get_rows(driver, current):
     fmt = current.strftime
-    year, month, day = ftm("%Y"), fmt("%b"), fmt("%-d")
+    year, month, day = fmt("%Y"), fmt("%b"), fmt("%-d")
 
     iso_format = current.strftime("%Y%m%d")
     logging.info("starting %s", iso_format)
@@ -89,13 +89,13 @@ def main():
         driver.get(dispatch)
 
     while current <= last:
-        filename = file_name(file_prefix, current.strftime(DAY_FORMAT))
+        path, filename = get_path_and_file(file_prefix, current)
         if dry_run:
             print(filename)
         else:
             try:
                 rows = get_rows(driver, current)
-                write_file(filename, rows, header)
+                write_file(path, filename, rows, header)
             except Exception as error:
                 logging.error("%s failed to get rows: %s", current, error)
         current = current + timedelta(days=1)

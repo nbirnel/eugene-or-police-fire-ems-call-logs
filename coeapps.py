@@ -4,6 +4,8 @@ import argparse
 import csv
 from datetime import datetime
 import logging
+from os import makedirs
+import os.path
 
 from dateutil.parser import parse as parse_date
 from selenium import webdriver
@@ -17,6 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 DAY_FORMAT = "%Y%m%d"
+
 
 
 def get_current_last(args):
@@ -126,10 +129,13 @@ def row_as_list_of_text(row, skip_first_n=False):
     return [cell.text for cell in cells]
 
 
-def file_name(prefix, date):
-    return f"{prefix}-{date}.csv"
+def get_path_and_file(prefix, date):
+    return date.strftime(f'{prefix}/%Y/%m'), date.strftime(f'{prefix}-%Y%m%d.csv')
 
-def write_file(output, rows, header):
+    
+def write_file(path, filename, rows, header):
+    makedirs(path, exist_ok=True)
+    output = os.path.join(path, filename)
     with open(output, "w", encoding="utf8") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(header)
