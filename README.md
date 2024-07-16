@@ -18,7 +18,7 @@ This project automates scraping these two pages.
 Output is to CSV files, one per day of records,
 stored in directories by year and month.
 
-You can download the zipped CSV files from the releases page.
+You can download the zipped CSV files from the [releases](https://github.com/nbirnel/eugene-or-police-fire-ems-call-logs/releases) page.
 
 ## Setup
 
