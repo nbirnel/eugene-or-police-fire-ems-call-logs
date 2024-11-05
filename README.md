@@ -118,3 +118,24 @@ options:
       -D, --dry-run         Do not fetch results, but merely print filenames which
                             would be saved to
 ```
+
+## Reading Fire & EMS CAD Call Individual Records
+
+Codes:
+
+* D: Dispatch
+* E: Enroute (reporting via radio)
+* AET: Auto Enroute Time (via Computer AVL)
+* A: Arrival
+* AAT: Auto Arrival Time (via Computer AVL)
+* C: Clear (Unit Available)
+* T: Transport
+* H: Hospital
+* X: Cancelled
+* C: Clear
+
+Comments:
+
+* Stat/Beat 05: In station/beat 05 (eg unit E5 is in its regular service area)
+* DIS: Dispatched to another call
+* PA: Patient arrived
