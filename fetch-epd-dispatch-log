@@ -5,7 +5,7 @@ from itertools import chain
 
 from coeapps import *
 
-DISPATCH = "https://coeapps.eugene-or.gov/EPDDispatchLog/Search"
+DISPATCH = "https://coeapps.eugene-or.gov/EPDDispatchLog/Home/Search"
 
 
 def get_incident_types(driver):
