@@ -134,6 +134,7 @@ def get_path_and_file(prefix, date):
 
     
 def write_file(path, filename, rows, header):
+    logging.debug('%s: writing', filename)
     makedirs(path, exist_ok=True)
     output = os.path.join(path, filename)
     with open(output, "w", encoding="utf8") as csvfile:
