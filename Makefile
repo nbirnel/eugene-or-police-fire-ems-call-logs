@@ -1,8 +1,13 @@
 DIRS := epd fire-ems spd
-ZIPS := $(addsuffix .zip,$(DIRS))
+CSVS := $(addsuffix .csv,$(DIRS))
 
+M_ZIPS := $(addsuffix .zip,$(DIRS))
+S_ZIPS := $(addsuffix .csv.zip,$(DIRS))
 
-help:
+DIST_M_ZIPS = $(addprefix dist/,$(M_ZIPS))
+DIST_S_ZIPS = $(addprefix dist/,$(S_ZIPS))
+
+help:    ## Print this help
 	@sed -n 's/\(^[-a-zA-Z_]\+\):.*/make \1/p' Makefile
 
 venv:
@@ -17,7 +22,10 @@ clean-dist:
 clean-all: clean clean-dist
 	rm -rfv *.zip *.csv
 
-%.zip: %
+dist/%.zip: %
 	zip -r $@ $<
 
-dist: $(ZIPS)
+%.csv: %
+	./tools/collate-csv.sh $<
+
+dist: $(DIST_M_ZIPS) $(DIST_S_ZIPS)

@@ -7,6 +7,7 @@ dest=$1.csv
 sed 1q $(find "$src" -type f -iname '*.csv' | sed 1q) >$dest
 
 for csv in $(find "$src" -type f -iname '*.csv' | sort ); do
-    sed 1d $csv >>$dest
+    echo $csv
+    #sed 1d $csv >>$dest
 done
 
