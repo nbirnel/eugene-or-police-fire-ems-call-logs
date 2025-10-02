@@ -22,6 +22,9 @@ You can download the zipped CSV files from the
 [releases](https://github.com/nbirnel/eugene-or-police-fire-ems-call-logs/releases)
 page.
 
+`.zip` files contain subdirectories for each year and month;
+`.csv.zip` files contain the entire dataset as one `csv`.
+
 ## Setup
 
 If you want to run the code yourself, be warned that it is a slow process.
