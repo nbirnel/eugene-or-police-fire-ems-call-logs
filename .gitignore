@@ -2,5 +2,11 @@
 *.log
 *.zip
 *.pyc
+.ipynb_checkpoints/
 venv/
 __pycache__/
+
+epd/
+spd/
+fire-ems/
+

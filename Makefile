@@ -14,6 +14,9 @@ clean:
 clean-dist:
 	rm -rfv $(ZIPS)
 
+clean-all: clean clean-dist
+	rm -rfv *.zip *.csv
+
 %.zip: %
 	zip -r $@ $<
 
